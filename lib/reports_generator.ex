@@ -20,10 +20,17 @@ defmodule ReportsGenerator do
     |> Enum.reduce(report_acc(), &sum_values(&1, &2))
   end
 
+  def build_from_any(filenames) when not is_list(filenames) do
+    {:error, "Please provide a list of strings"}
+  end
+
   def build_from_any(filenames) do
-    filenames
-    |> Task.async_stream(&build/1)
-    |> Enum.reduce(report_acc(), fn {:ok, result}, report -> sum_reports(report, result) end)
+    result =
+      filenames
+      |> Task.async_stream(&build/1)
+      |> Enum.reduce(report_acc(), fn {:ok, result}, report -> sum_reports(report, result) end)
+
+    {:ok, result}
   end
 
   def fetch_higher_cost(report, option) when option in @options do
@@ -38,12 +45,6 @@ defmodule ReportsGenerator do
 
     # Atualiza map
     build_report_map(foods, users)
-
-    # OU
-
-    # report
-    # |> Map.put("users", users)
-    # |> Map.put("foods", foods)
   end
 
   defp sum_reports(%{"foods" => foods1, "users" => users1}, %{
